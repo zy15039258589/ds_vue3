@@ -166,6 +166,7 @@
              dialogBrandAdd:false,
            }
         },
+
         methods:{
             handleSizeChange:function(val){
                 this.size=val;
