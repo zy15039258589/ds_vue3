@@ -13,13 +13,13 @@
               <el-table-column prop="nameCH" label="属性中文名" align="center">
 
               </el-table-column>
-              <el-table-column prop="typeId" label="分类" align="center">
+              <el-table-column prop="typeId"  v-bind:formatter="typeIdFor" label="分类" align="center">
 
               </el-table-column>
-              <el-table-column prop="type" label="属性类型" align="center">
+              <el-table-column prop="type" v-bind:formatter="typeFor" label="属性类型" align="center">
 
               </el-table-column>
-              <el-table-column prop="isSKU" label="sku属性" align="center">
+              <el-table-column prop="isSKU" v-bind:formatter="isSKUFor" label="sku属性" align="center">
               </el-table-column>
 
               <el-table-column fixed="right" label="操作" align="center">
@@ -38,6 +38,50 @@
               layout="total, sizes, prev, pager, next, jumper"
               :total=count>
             </el-pagination>
+
+
+
+
+
+          <el-dialog title="新增信息" :visible.sync="dialogBrandAdd">
+            <el-form ref="form" :model="formAdd" label-width="80px">
+              <el-form-item label="属性名">
+                <el-input v-model="formAdd.name"></el-input>
+              </el-form-item>
+
+              <el-form-item label="属性中文名">
+                <el-input v-model="formAdd.nameCH"></el-input>
+              </el-form-item>
+                <el-form-item label="分类">
+                          <el-select  v-model="formAdd.typeId" placeholder="请选择">
+                              <el-option
+                                v-for="item in typeDataZi"
+                                :key="item.id"
+                                :label="item.name"
+                                :value="item.id">
+                              </el-option>
+                          </el-select>
+                </el-form-item>
+              <el-form-item label="属性类型">
+                <el-radio v-model="formAdd.type" label="0">下拉框</el-radio>
+                <el-radio v-model="formAdd.type" label="1">单选框</el-radio>
+                <el-radio v-model="formAdd.type" label="2">复选框</el-radio>
+                <el-radio v-model="formAdd.type" label="3">输入框</el-radio>
+              </el-form-item>
+
+              <el-form-item label="sku属性">
+                  <el-radio v-model="formAdd.isSKU" label="0">是</el-radio>
+                  <el-radio v-model="formAdd.isSKU" label="1">否</el-radio>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button @click="dialogBrandUpdate2 = false">取 消</el-button>
+                <el-button type="primary" @click="addProperty">新增</el-button>
+              </el-form-item>
+            </el-form>
+          </el-dialog>
+
+
         </div>
 </template>
 
@@ -47,10 +91,22 @@
         data(){
           return{
             tableData:[],
+            typeData:[],
+            typeDataZi:[],
             //分页
             limit:"2",
             name:"",
             count:"",
+            //新增
+            dialogBrandAdd:false,
+            formAdd:{
+              name:"",
+              nameCH:"",
+              typeId:"",
+              type:"",
+              isSKU:""
+            }
+
           }
         },
         methods:{
@@ -74,8 +130,87 @@
                   alert("查询失败")
                 })
             },
+            queryType:function(){
+                var zy=this;
+                this.$axios.get("http://192.168.235.1:8080/PropertyController/queryType").then(function (res) {
+                  debugger;
+
+                  zy.typeData=res.data.data;
+                    for (var i = 0; i <zy.typeData.length ; i++) {
+                          var type=zy.typeData[i];
+                          var boolean=zy.typeFu(type);
+                          if(boolean==false){
+                            var data={};
+                            data.id=zy.typeData[i].id
+                            data.name=zy.typeData[i].name
+                            zy.typeDataZi.push(data)
+                          }
+                    }
+                    //[{id="",name=""},{id="",name=""},{id="",name=""}]
+
+
+                }).catch(function () {
+                  alert("失败")
+                })
+            },
+            typeFu(type){
+              debugger;
+              for (var i = 0; i <this.typeData.length ; i++) {
+                var pid=this.typeData[i].pid
+                if(type.id==pid) {
+                  return true;
+                }
+              }
+              return false;
+            },
+            typeIdFor:function (row,column,cellValue,index) {
+              debugger;
+              for (var i = 0; i <this.typeData.length ; i++) {
+                  if(row.typeId===this.typeData[i].id){
+                    return this.typeData[i].name
+                  }
+              }
+              return "未知"
+            },
+            typeFor:function (row,column,cellValue,index) {
+                if(row.type==0){
+                   return "下拉框"
+                }
+                if(row.type==1){
+                  return "单选框"
+                }
+                if(row.type==2){
+                  return "复选框"
+                }
+                if(row.type==3){
+                  return "输入框"
+                }
+            },
+            isSKUFor:function (row,column,cellValue,index) {
+                if(row.isSKU==0){
+                  return "是"
+                }
+                if(row.isSKU==1){
+                  return "否"
+                }
+            },
+            add:function () {
+                this.dialogBrandAdd=true;
+            },
+            addProperty:function () {
+              var zy=this;
+               this.$axios.post("http://192.168.235.1:8080/PropertyController/add",this.$qs.stringify(this.formAdd)).then(function () {
+                  alert("新增成功")
+                  zy.formAdd=[];
+                  zy.dialogBrandAdd=false;
+                 zy.chaxun();
+               }).catch(function () {
+                 alert("新增失败")
+               })
+            }
         },
         created:function () {
+            this.queryType();
             this.queryPropertyData(1);
         }
     }
