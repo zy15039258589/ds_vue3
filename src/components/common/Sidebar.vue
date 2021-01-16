@@ -74,6 +74,10 @@ export default {
                       index: 'brand',
                       title: '品牌管理'
                     },
+                    {
+                      index: 'property',
+                      title: '商品属性'
+                    },
                   ]
                 },
                 {

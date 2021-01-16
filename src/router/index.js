@@ -20,6 +20,11 @@ export default new Router({
           component: () => import(/* webpackChunkName: "dashboard" */ '../components/shop/Brand.vue'),
           meta: { title: '品牌管理' }
         },
+        {
+          path: '/property',
+          component: () => import(/* webpackChunkName: "dashboard" */ '../components/shop/property.vue'),
+          meta: { title: '商品管理' }
+        },
       ]
     },
   ]
