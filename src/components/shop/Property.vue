@@ -82,6 +82,49 @@
           </el-dialog>
 
 
+
+
+          <el-dialog title="修改信息" :visible.sync="dialogBrandUpdate">
+            <el-form ref="form" :model="formXiugai" label-width="80px">
+              <el-form-item label="属性名">
+                <input type="hidden" v-model="formXiugai.id">
+                <el-input v-model="formXiugai.name"></el-input>
+              </el-form-item>
+
+              <el-form-item label="属性中文名">
+                <el-input v-model="formXiugai.nameCH"></el-input>
+              </el-form-item>
+              <el-form-item label="分类">
+                <el-select  v-model="formXiugai.typeId" placeholder="请选择">
+                  <el-option
+                    v-for="item in typeDataZi"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="属性类型">
+                <el-radio v-model="formXiugai.type" :label="0">下拉框</el-radio>
+                <el-radio v-model="formXiugai.type" :label="1">单选框</el-radio>
+                <el-radio v-model="formXiugai.type" :label="2">复选框</el-radio>
+                <el-radio v-model="formXiugai.type" :label="3">输入框</el-radio>
+              </el-form-item>
+
+              <el-form-item label="sku属性">
+                <el-radio v-model="formXiugai.isSKU" :label="0">是</el-radio>
+                <el-radio v-model="formXiugai.isSKU" :label="1">否</el-radio>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button @click="dialogBrandUpdate2 = false">取 消</el-button>
+                <el-button type="primary" @click="update">修改</el-button>
+              </el-form-item>
+            </el-form>
+          </el-dialog>
+
+
+
         </div>
 </template>
 
@@ -105,109 +148,148 @@
               typeId:"",
               type:"",
               isSKU:""
+            },
+            //修改
+            dialogBrandUpdate:false,
+            formXiugai:{
+              id:"",
+              name:"",
+              nameCH:"",
+              typeId:"",
+              type:"",
+              isSKU:""
             }
 
           }
         },
-        methods:{
-            handleSizeChange:function(val){
-                this.limit=val;
-                this.queryPropertyData(1);
-            },
-            chaxun:function(){
-              this.queryPropertyData(1);
-            },
-            handleCurrentChange:function(val){
-                this.queryPropertyData(val);
-            },
-            queryPropertyData:function (page) {
-                var data={"page":page,"limit":this.limit,"name":this.name}
-                var zy=this;
-                this.$axios.post("http://192.168.235.1:8080/PropertyController/getDate",this.$qs.stringify(data)).then(function (res) {
-                  zy.tableData=res.data.data;
-                  zy.count=res.data.count;
-                }).catch(function () {
-                  alert("查询失败")
-                })
-            },
-            queryType:function(){
-                var zy=this;
-                this.$axios.get("http://192.168.235.1:8080/PropertyController/queryType").then(function (res) {
-                  debugger;
-
-                  zy.typeData=res.data.data;
-                    for (var i = 0; i <zy.typeData.length ; i++) {
-                          var type=zy.typeData[i];
-                          var boolean=zy.typeFu(type);
-                          if(boolean==false){
-                            var data={};
-                            data.id=zy.typeData[i].id
-                            data.name=zy.typeData[i].name
-                            zy.typeDataZi.push(data)
-                          }
-                    }
-                    //[{id="",name=""},{id="",name=""},{id="",name=""}]
-
-
-                }).catch(function () {
-                  alert("失败")
-                })
-            },
-            typeFu(type){
+        methods: {
+          handleSizeChange: function (val) {
+            this.limit = val;
+            this.queryPropertyData(1);
+          },
+          chaxun: function () {
+            this.queryPropertyData(1);
+          },
+          handleCurrentChange: function (val) {
+            this.queryPropertyData(val);
+          },
+          queryPropertyData: function (page) {
+            var data = {"page": page, "limit": this.limit, "name": this.name}
+            var zy = this;
+            this.$axios.post("http://192.168.235.1:8080/PropertyController/getDate", this.$qs.stringify(data)).then(function (res) {
+              zy.tableData = res.data.data;
+              zy.count = res.data.count;
+            }).catch(function () {
+              alert("查询失败")
+            })
+          },
+          queryType: function () {
+            var zy = this;
+            this.$axios.get("http://192.168.235.1:8080/PropertyController/queryType").then(function (res) {
               debugger;
-              for (var i = 0; i <this.typeData.length ; i++) {
-                var pid=this.typeData[i].pid
-                if(type.id==pid) {
-                  return true;
+
+              zy.typeData = res.data.data;
+              for (var i = 0; i < zy.typeData.length; i++) {
+                var type = zy.typeData[i];
+                var boolean = zy.typeFu(type);
+                if (boolean == false) {
+                  var data = {};
+                  data.id = zy.typeData[i].id
+                  data.name = zy.typeData[i].name
+                  zy.typeDataZi.push(data)
                 }
               }
-              return false;
-            },
-            typeIdFor:function (row,column,cellValue,index) {
-              debugger;
-              for (var i = 0; i <this.typeData.length ; i++) {
-                  if(row.typeId===this.typeData[i].id){
-                    return this.typeData[i].name
-                  }
+              //[{id="",name=""},{id="",name=""},{id="",name=""}]
+
+
+            }).catch(function () {
+              alert("失败")
+            })
+          },
+          typeFu(type) {
+            debugger;
+            for (var i = 0; i < this.typeData.length; i++) {
+              var pid = this.typeData[i].pid
+              if (type.id == pid) {
+                return true;
               }
-              return "未知"
-            },
-            typeFor:function (row,column,cellValue,index) {
-                if(row.type==0){
-                   return "下拉框"
-                }
-                if(row.type==1){
-                  return "单选框"
-                }
-                if(row.type==2){
-                  return "复选框"
-                }
-                if(row.type==3){
-                  return "输入框"
-                }
-            },
-            isSKUFor:function (row,column,cellValue,index) {
-                if(row.isSKU==0){
-                  return "是"
-                }
-                if(row.isSKU==1){
-                  return "否"
-                }
-            },
-            add:function () {
-                this.dialogBrandAdd=true;
-            },
-            addProperty:function () {
-              var zy=this;
-               this.$axios.post("http://192.168.235.1:8080/PropertyController/add",this.$qs.stringify(this.formAdd)).then(function () {
-                  alert("新增成功")
-                  zy.formAdd=[];
-                  zy.dialogBrandAdd=false;
-                 zy.chaxun();
-               }).catch(function () {
-                 alert("新增失败")
-               })
             }
+            return false;
+          },
+          typeIdFor: function (row, column, cellValue, index) {
+            debugger;
+            for (var i = 0; i < this.typeData.length; i++) {
+              if (row.typeId === this.typeData[i].id) {
+                return this.typeData[i].name
+              }
+            }
+            return "未知"
+          },
+          typeFor: function (row, column, cellValue, index) {
+            if (row.type == 0) {
+              return "下拉框"
+            }
+            if (row.type == 1) {
+              return "单选框"
+            }
+            if (row.type == 2) {
+              return "复选框"
+            }
+            if (row.type == 3) {
+              return "输入框"
+            }
+          },
+          isSKUFor: function (row, column, cellValue, index) {
+            if (row.isSKU == 0) {
+              return "是"
+            }
+            if (row.isSKU == 1) {
+              return "否"
+            }
+          },
+          add: function () {
+            this.dialogBrandAdd = true;
+          },
+          addProperty: function () {
+            var zy = this;
+            this.$axios.post("http://192.168.235.1:8080/PropertyController/add", this.$qs.stringify(this.formAdd)).then(function () {
+              alert("新增成功")
+              zy.formAdd = [];
+              zy.dialogBrandAdd = false;
+              zy.chaxun();
+            }).catch(function () {
+              alert("新增失败")
+            })
+          },
+          updateProperty: function (index, row) {
+            this.formXiugai.id = row.id;
+            this.formXiugai.name = row.name;
+            this.formXiugai.nameCH = row.nameCH;
+            this.formXiugai.typeId = row.typeId;
+            this.formXiugai.type = row.type;
+            this.formXiugai.isSKU = row.isSKU;
+            this.dialogBrandUpdate = true;
+          },
+          update:function () {
+            var zy=this;
+              this.$axios.post("http://192.168.235.1:8080/PropertyController/update", this.$qs.stringify(this.formXiugai)).then(function () {
+                alert("修改成功")
+                zy.dialogBrandUpdate=false;
+                zy.formXiugai = [];
+                zy.chaxun();
+              }).catch(function () {
+                alert("修改失败")
+              })
+          },
+          deleteProperty:function (index,row) {
+            var zy=this;
+            this.$axios("http://192.168.235.1:8080/PropertyController/delete?id="+row.id).then(function () {
+              alert("删除成功")
+              zy.chaxun();
+            }).catch(function () {
+              alert("删除失败")
+            })
+          }
         },
         created:function () {
             this.queryType();
