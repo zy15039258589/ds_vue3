@@ -101,7 +101,7 @@
         },
         addType:function(){
            var zy=this;
-            this.$axios.post("http://192.168.235.1:8082/api/type/add",this.$qs.stringify(this.form)).then(function (res) {
+            this.$axios.post("http://192.168.235.1:8080/api/type/add",this.$qs.stringify(this.form)).then(function (res) {
                 alert("新增成功");
                 zy.dialogFormVisible=false;
                 location.reload();
@@ -126,7 +126,7 @@
         },
         updateTypeById:function(){
           var zy=this;
-          this.$axios.post("http://192.168.235.1:8082/api/type/update",this.$qs.stringify(this.updateType)).then(function (res) {
+          this.$axios.post("http://192.168.235.1:8080/api/type/update",this.$qs.stringify(this.updateType)).then(function (res) {
             alert("修改成功");
             zy.dialogFormVisible2=false;
             location.reload();
@@ -183,7 +183,7 @@
       },
       created:function () {
           var zy=this;
-        this.$axios.get("http://192.168.235.1:8082/api/type/getData").then(function (res) {
+        this.$axios.get("http://192.168.235.1:8080/api/type/getData").then(function (res) {
               zy.ajaxData=res.data.data;
               zy.chandleData();
         }).catch(function () {

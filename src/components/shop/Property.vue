@@ -26,7 +26,7 @@
                 <template slot-scope="scope">
                   <el-button size="mini" @click="updateProperty(scope.$index,scope.row)">编辑</el-button>
                   <el-button size="mini" type="danger" @click="deleteProperty(scope.$index, scope.row)">删除</el-button>
-                  <el-button size="mini" type="danger" @click="propertyValue(scope.$index, scope.row)">属性值维护</el-button>
+                  <el-button size="mini" v-if="scope.row.type!=3" type="danger" @click="propertyValue(scope.$index, scope.row)">属性值维护</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -126,7 +126,7 @@
 
           <!-- -----------属性值表-------------- -->
 
-          <el-dialog title="修改信息" :visible.sync="dialogPropertyValue">
+          <el-dialog :title="title" :visible.sync="dialogPropertyValue">
             <el-button type="primary" @click="addValue">新增</el-button>
             <el-table :data="valueTableData" style="width: 100%" max-height="250">
               <el-table-column fixed prop="id" label="序号" width="150">
@@ -147,18 +147,18 @@
 
           <el-dialog title="属性值修改信息" :visible.sync="dialogValueUpdate">
           <el-form ref="form" :model="valueUpdate" label-width="80px">
-            <el-form-item label="属性名">
+            <el-form-item label="属性名" prop="value">
               <input type="hidden" v-model="valueUpdate.id">
               <input type="hidden" v-model="valueUpdate.propertyId">
               <el-input v-model="valueUpdate.value"></el-input>
             </el-form-item>
 
-            <el-form-item label="属性中文名">
+            <el-form-item label="属性中文名" prop="valueCH">
               <el-input v-model="valueUpdate.valueCH"></el-input>
             </el-form-item>
 
             <el-form-item>
-              <el-button @click="dialogValueUpdate = false">取 消</el-button>
+              <el-button @click="dialog">取 消</el-button>
               <el-button type="primary" @click="updatePropertyValue">修改</el-button>
             </el-form-item>
           </el-form>
@@ -166,17 +166,17 @@
 
           <el-dialog title="属性值新增信息" :visible.sync="dialogValueAdd">
             <el-form ref="form" :model="valueAdd" label-width="80px">
-              <el-form-item label="属性名">
+              <el-form-item label="属性名" prop="value">
                 <input type="hidden" v-model="valueAdd.propertyId">
                 <el-input v-model="valueAdd.value"></el-input>
               </el-form-item>
 
-              <el-form-item label="属性中文名">
+              <el-form-item label="属性中文名" prop="valueCH">
                 <el-input v-model="valueAdd.valueCH"></el-input>
               </el-form-item>
 
               <el-form-item>
-                <el-button @click="dialogValueUpdate = false">取 消</el-button>
+                <el-button @click="dialog">取 消</el-button>
                 <el-button type="primary" @click="addValueData">添加</el-button>
               </el-form-item>
             </el-form>
@@ -191,6 +191,7 @@
         name: "Property",
         data(){
           return{
+            arr:[],
             tableData:[],
             typeData:[],
             typeDataZi:[],
@@ -222,6 +223,7 @@
             //属性值表的所有属性
             dialogPropertyValue:false,
             valueTableData:[],
+            title:"",
             //修改
             dialogValueUpdate:false,
             valueUpdate:{
@@ -238,22 +240,31 @@
             dialogValueAdd:false,
           }
         },
+        rules:{
+          value: [
+            { required: true, message: '请输入值名称', trigger: 'blur' },
+          ],
+          valueCH: [
+            { required: true, message: '请输入活动名称', trigger: 'blur' }
+          ],
+        },
+
         methods: {
           //属性值表的所有方法
           propertyValue:function(index,row){
                 this.valueAdd.propertyId=row.id;
+                var cc="";
+                for (let i = 0; i <this.typeData.length ; i++) {
+                    if(this.typeData[i].id==row.typeId){
+                          cc=this.typeData[i].name;
+                    }
+                }
+                this.title=cc+"-----"+row.nameCH+"的值属性"
                 var zy = this;
-                this.$axios.get("http://192.168.235.1:8082/ValueController/getData?id="+row.id).then(function (res) {
+                this.$axios.get("http://192.168.235.1:8080/ValueController/getData?id="+row.id).then(function (res) {
                   zy.valueTableData=res.data.data;
-                  if(row.type==3){
-                    zy.$message({
-                      message: '你是自定义的属性',
-                      type: 'warning'
-                    });
                     zy.dialogPropertyValue=false;
-                  }else{
                     zy.dialogPropertyValue=true;
-                  }
                 }).catch(function () {
                   alert("查询失败")
                 })
@@ -264,23 +275,34 @@
             this.valueUpdate.valueCH=row.valueCH;
             this.valueUpdate.propertyId=row.propertyId;
             this.dialogValueUpdate=true;
+            this.dialogPropertyValue=false;
           },
           updatePropertyValue:function(){
-            var  zy=this;
-              this.$axios.post("http://192.168.235.1:8082/ValueController/update",this.$qs.stringify(this.valueUpdate)).then(function () {
-                zy.$message({
-                  message: '修改成功',
-                  type: 'success'
-                });
-                zy.queryLocal(zy.valueUpdate.propertyId);
-                zy.dialogValueUpdate=false;
+              this.$confirm('您确定要修改么', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                var  zy=this;
+                this.$axios.post("http://192.168.235.1:8080/ValueController/update",this.$qs.stringify(this.valueUpdate)).then(function () {
+                  zy.$message({
+                    message: '修改成功',
+                    type: 'success'
+                  });
+                  zy.queryLocal(zy.valueUpdate.propertyId);
+                  zy.dialogValueUpdate=false;
+                  zy.dialogPropertyValue=true;
+                }).catch(function () {
+                  alert("失败")
+                })
+              }).catch(() => {
 
-              }).catch(function () {
-                alert("失败")
-              })
+              });
+
+
           },queryLocal:function(id){
             var zy=this;
-                this.$axios.get("http://192.168.235.1:8082/ValueController/getData?id="+id).then(function (res) {
+                this.$axios.get("http://192.168.235.1:8080/ValueController/getData?id="+id).then(function (res) {
                   zy.valueTableData=res.data.data;
                 }).catch(function () {
                   alert("查询失败")
@@ -290,23 +312,30 @@
               this.valueAdd.value="";
               this.valueAdd.valueCH="";
               this.dialogValueAdd=true;
+              this.dialogPropertyValue=false;
           },
           addValueData:function(){
             var zy=this;
-            this.$axios.post("http://192.168.235.1:8082/ValueController/add",this.$qs.stringify(this.valueAdd)).then(function () {
+            this.$axios.post("http://192.168.235.1:8080/ValueController/add",this.$qs.stringify(this.valueAdd)).then(function () {
               zy.$message({
                 message: '新增成功',
                 type: 'success'
               });
               zy.queryLocal(zy.valueAdd.propertyId);
               zy.dialogValueAdd=false;
+              zy.dialogPropertyValue=true;
             }).catch(function () {
               alert("新增失败")
             })
           },
           deleteValue:function(indsx,row){
+            this.$confirm('您确认要删除么', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
               var zy=this;
-              this.$axios.get("http://192.168.235.1:8082/ValueController/delete?id="+row.id).then(function () {
+              this.$axios.get("http://192.168.235.1:8080/ValueController/delete?id="+row.id).then(function () {
                 zy.$message({
                   message: '删除成功',
                   type: 'success'
@@ -315,6 +344,15 @@
               }).catch(function () {
                 alert("删除失败")
               })
+            }).catch(() => {
+
+            });
+          },
+          dialog:function(){
+            debugger;
+            this.dialogValueUpdate=false;
+            this.dialogValueAdd=false;
+            this.dialogPropertyValue=true;
           },
 
 
@@ -338,7 +376,7 @@
           queryPropertyData: function (page) {
             var data = {"page": page, "limit": this.limit, "name": this.name}
             var zy = this;
-            this.$axios.post("http://192.168.235.1:8082/PropertyController/getDate", this.$qs.stringify(data)).then(function (res) {
+            this.$axios.post("http://192.168.235.1:8080/PropertyController/getDate", this.$qs.stringify(data)).then(function (res) {
               zy.tableData = res.data.data;
               zy.count = res.data.count;
             }).catch(function () {
@@ -347,45 +385,40 @@
           },
           queryType: function () {
             var zy = this;
-            this.$axios.get("http://192.168.235.1:8082/PropertyController/queryType").then(function (res) {
+            this.$axios.get("http://192.168.235.1:8080/PropertyController/queryType").then(function (res) {
+              console.log(res.data.data)
+              zy.arr=res.data.data;
               zy.typeData = res.data.data;
-              zy.typeList+="["
+              //zy.typeList+="["
               for (var i = 0; i < zy.typeData.length; i++) {
                 var type = zy.typeData[i];
                 var boolean = zy.typeFu(type);
                 if (boolean == false) {
-                  zy.typeList+="{id:"+type.id+",name:'分类"
-                  zy.diguiType(type);
-                  zy.typeList+="/"+type.name+"'},"
-                }else{
-                  if(zy.typeData[i].pid==1){
-                    zy.diguiType(zy.typeData[i]);
-                  }
+                  zy.typeDataZi.push(zy.typeData[i])
                 }
               }
-              zy.typeList+="]"
-              zy.typeDataZi.push(zy.typeList);
-              console.log(zy.typeDataZi);
+
+              for (let i = 0; i <zy.typeDataZi.length ; i++) {
+                    zy.typeList="";
+                    zy.diguiType(zy.typeDataZi[i])
+                    zy.typeDataZi[i].name=zy.typeList.split("/").reverse().join("/")
+              }
             }).catch(function () {
               alert("查询失败")
             })
           },
           diguiType:function(type){
-            debugger;
-            this.countFlig++;
-            //[{},{},{}]
-            for (var i = 0; i <this.typeData.length ; i++) {
-              debugger;
-                if(i==0){
-                  continue
-                }
+            if(type.pid!=0){ //临界值
+              this.typeList+=type.name+"/"
+              for (var i = 0; i <this.typeData.length ; i++) {
                 if(this.typeData[i].id==type.pid){
-                  this.typeList+="/"+this.typeData[i].name
                   this.diguiType(this.typeData[i]);
-                }else{
-                  continue
                 }
+              }
+            }else{
+              this.typeList+=type.name
             }
+
           },
           typeFu(type) {
             for (var i = 0; i < this.typeData.length; i++) {
@@ -397,9 +430,10 @@
             return false;
           },
           typeIdFor: function (row, column, cellValue, index) {
-            for (var i = 0; i < this.typeData.length; i++) {
-              if (row.typeId === this.typeData[i].id) {
-                return this.typeData[i].name
+            console.log(JSON.stringify(this.arr))
+            for (var i = 0; i < this.arr.length; i++) {
+              if (cellValue === this.arr[i].id) {
+                  return this.arr[i].name
               }
             }
             return "未知"
@@ -432,7 +466,7 @@
           },
           addProperty: function () {
             var zy = this;
-            this.$axios.post("http://192.168.235.1:8082/PropertyController/add", this.$qs.stringify(this.formAdd)).then(function () {
+            this.$axios.post("http://192.168.235.1:8080/PropertyController/add", this.$qs.stringify(this.formAdd)).then(function () {
               alert("新增成功")
               zy.formAdd = [];
               zy.dialogBrandAdd = false;
@@ -451,8 +485,14 @@
             this.dialogBrandUpdate = true;
           },
           update:function () {
-            var zy=this;
-              this.$axios.post("http://192.168.235.1:8082/PropertyController/update", this.$qs.stringify(this.formXiugai)).then(function () {
+
+            this.$confirm('您确认要修改么？', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              var zy=this;
+              this.$axios.post("http://192.168.235.1:8080/PropertyController/update", this.$qs.stringify(this.formXiugai)).then(function () {
                 alert("修改成功")
                 zy.dialogBrandUpdate=false;
                 zy.formXiugai = [];
@@ -460,15 +500,31 @@
               }).catch(function () {
                 alert("修改失败")
               })
+            }).catch(() => {
+
+            });
+
+
+
           },
           deleteProperty:function (index,row) {
-            var zy=this;
-            this.$axios("http://192.168.235.1:8082/PropertyController/delete?id="+row.id).then(function () {
-              alert("删除成功")
-              zy.chaxun();
-            }).catch(function () {
-              alert("删除失败")
-            })
+
+            this.$confirm('您确认要删除么', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              var zy=this;
+              this.$axios("http://192.168.235.1:8080/PropertyController/delete?id="+row.id).then(function () {
+                alert("删除成功")
+                zy.chaxun();
+              }).catch(function () {
+                alert("删除失败")
+              })
+
+            }).catch(() => {
+
+            });
           }
         },
         created:function () {
