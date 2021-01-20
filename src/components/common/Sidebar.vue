@@ -67,6 +67,10 @@ export default {
                   title: '商品管理',
                   subs: [
                     {
+                      index: 'goods',
+                      title: '商品维护'
+                    },
+                    {
                       index: 'type',
                       title: '分类管理'
                     },

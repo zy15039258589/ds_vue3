@@ -25,6 +25,11 @@ export default new Router({
           component: () => import(/* webpackChunkName: "dashboard" */ '../components/shop/property.vue'),
           meta: { title: '商品管理' }
         },
+        {
+          path: '/goods',
+          component: () => import(/* webpackChunkName: "dashboard" */ '../components/shop/goods.vue'),
+          meta: { title: '商品管理' }
+        },
       ]
     },
   ]
