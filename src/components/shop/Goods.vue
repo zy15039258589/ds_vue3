@@ -86,9 +86,14 @@
                   </el-table-column>
                     <el-table-column prop="price" label="价格" width="180">
                       <template slot-scope="scope">
+                        <el-input v-model="scope.row.price"></el-input>
                       </template>
                     </el-table-column>
-                    <el-table-column prop="count" label="库存" width="180"></el-table-column>
+                    <el-table-column prop="stocks" label="库存" width="180">
+                      <template slot-scope="scope">
+                        <el-input v-model="scope.row.stocks"></el-input>
+                      </template>
+                    </el-table-column>
                 </el-table>
             </el-form>
               <br><br><br>
@@ -98,26 +103,26 @@
               参数：
               <el-form ref="form" label-width="80px"   v-for="value  in noSkuPropertyData" v-if="noSkuPropertyData.length>0">
                 <el-form-item v-model="formValue" :label="value.nameCH" align="left">
-                  <el-select v-if="value.type==0"  placeholder="请选择" v-model="formValue.optionValue[value.id]">
+                  <el-select v-if="value.type==0"  placeholder="请选择" v-model="value.ckvalue">
                     <el-option v-for="item in value.values" :key="item.id" :label="item.valueCH" :value="item.id">
                     </el-option>
                   </el-select>
 
-                  <el-radio-group v-if="value.type==1" v-model="formValue.radioValue">
+                  <el-radio-group v-if="value.type==1" v-model="value.ckvalue">
                     <el-radio  v-for="b in value.values" :key="b.id" :label="b.valueCH"></el-radio>
                   </el-radio-group>
 
-                  <el-checkbox-group v-if="value.type==2" v-model="formValue.checkboxValue" >
+                  <el-checkbox-group v-if="value.type==2" v-model="value.ckvalue" >
                     <el-checkbox  v-for="b in value.values" :key="b.id" :label="b.valueCH" name="type"></el-checkbox>
                   </el-checkbox-group>
-                  <el-input v-if="value.type==3" ></el-input>
+                  <el-input v-if="value.type==3" v-model="value.ckvalue"></el-input>
                 </el-form-item>
               </el-form>
 
 
               <el-form-item align="center">
                 <el-button type="primary" @click="active--">上一步</el-button>
-                <el-button type="primary" @click="next">提交</el-button>
+                <el-button type="primary" @click="add">提交</el-button>
                 <input type="reset"/>
               </el-form-item>
             </el-form>
@@ -152,7 +157,10 @@
               stocks:0,
               sortNum:0,
               imageUrl:"",
-              imgPath:""
+              imgPath:"",
+              typeId:"",
+              sku:"",
+              noSku:""
             },
             bandData:[],
             //监听数据
@@ -166,13 +174,6 @@
             skuPropertyData:[],
             //非sku属性数据
             noSkuPropertyData:[],
-            //sku属性值数据
-            formValue:{
-              optionValue:[],
-              radioValue:"",
-              checkboxValue:[],
-              skuCheckboxValue:[]
-            },
             //是否展示表格
             tableShow:false,
             tableDataSku:[],
@@ -195,7 +196,25 @@
                   },
           }
         },
+
         methods:{
+          add:function(){
+            console.log(this.skuPropertyData);
+            this.formGoodsAdd.typeId=this.properId;
+              var noSkus=[];
+              for (let i = 0; i <this.noSkuPropertyData.length ; i++) {
+                  let dd={};
+                  var key=this.noSkuPropertyData[i].name;
+                  dd[key]=this.noSkuPropertyData[i].ckvalue;
+                  noSkus.push(dd)
+              }
+              this.formGoodsAdd.noSku=JSON.stringify(noSkus);
+              this.formGoodsAdd.sku=JSON.stringify(this.tableDataSku);
+              //发起请求  保存数据
+              this.$axios.post("http://localhost:8080/GoodsController/addGoodsOrProper",this.$qs.stringify(this.formGoodsAdd)).then(res=>{
+                this.$message.success("添加成功");
+              })
+          },
           calcDescartes:function (array) {
                 if (array.length < 2) return array[0] || [];
                 return [].reduce.call(array, function (col, set) {
@@ -231,12 +250,19 @@
                 for (let i = 0; i <res.length ; i++) {
                     let valuesAttr =res[i];
                     let  tableValue={};
-                    for (let j = 0; j <valuesAttr.length ; j++) {
-                      //因为每次j++每次的key的值都不同 所以达到了不同的key对应不同的值
-                      var key=this.cols[j].name;
+                    if(typeof valuesAttr=="object"){
+                      for (let j = 0; j <valuesAttr.length ; j++) {
+                        //因为每次j++每次的key的值都不同 所以达到了不同的key对应不同的值
+                        var key=this.cols[j].name;
+                        //根据不同的key取值
+                        tableValue[key]=valuesAttr[j];
+                      }
+                    }else{
+                      var key=this.cols[0].name;
                       //根据不同的key取值
-                      tableValue[key]=valuesAttr[j];
+                      tableValue[key]=valuesAttr;
                     }
+
                     this.tableDataSku.push(tableValue);
                 }
             }
@@ -254,7 +280,7 @@
           },
           queryType: function () {
             var zy = this;
-            this.$axios.get("http://192.168.235.1:8080/PropertyController/queryType").then(function (res) {
+            this.$axios.get("http://localhost:8080/PropertyController/queryType").then(function (res) {
               zy.typeData = res.data.data;
               //zy.typeList+="["
               for (var i = 0; i < zy.typeData.length; i++) {
@@ -295,11 +321,11 @@
             return false;
           },//图片监听事件
           handleAvatarSuccess:function (res, file) {
-            this.formGoodsAdd.imgpath=res;
+            this.formGoodsAdd.imgPath=res;
           },
         },
         created:function(){
-          this.$axios.get("http://192.168.1.220:8080/BrandController/queryBrand").then(res=>{
+          this.$axios.get("http://localhost:8080/BrandController/queryBrand").then(res=>{
               this.bandData=res.data.data;
               this.queryType();
           }).catch(res=>{
@@ -308,40 +334,15 @@
         },
         watch:{
              properId:function () {
-               var zy=this;
-                 this.$axios.get("http://192.168.235.1:8080/PropertyController/queryTypeByTypeId?typeId="+this.properId).then(function (res) {
-                   var  propertyData=res.data.data; //所有的属性数据
-                   zy.skuPropertyData=[];// sku 属性   颜色   大小
-                     zy.noSkuPropertyData=[];
-                   for (let i = 0; i <propertyData.length ; i++) {
-                          if(propertyData[i].isSKU==0){
-                                if(propertyData[i].type!=3){
-                                  zy.$axios.get("http://192.168.235.1:8080/ValueController/getData?id="+propertyData[i].id).then(res=>{
-                                    propertyData[i].values=res.data.data;
-                                    propertyData[i].ckvalue=[];
-                                    zy.skuPropertyData.push(propertyData[i]);
-                                  })
-                                }else{
-                                  propertyData[i].ckvalue=[];
-                                  zy.skuPropertyData.push(propertyData[i]);
-                                }
+               this.tableShow = false;
+               this.skuPropertyData = [];// sku 属性   颜色   大小
+               this.noSkuPropertyData = [];
+               this.$axios.get("http://localhost:8080/ValueController/queryByTypeId?typeId="+this.properId).then(res=>{
+                 this.skuPropertyData=res.data.skuData;
+                 this.noSkuPropertyData=res.data.attrData;
+               })
 
-                          }else{
-                                if(propertyData[i].type!=3){
-                                  zy.$axios.get("http://192.168.235.1:8080/ValueController/getData?id="+propertyData[i].id).then(res=>{
-                                    propertyData[i].values=res.data.data;
-                                    zy.noSkuPropertyData.push(propertyData[i]);
-                                  })
-                                }else{
-                                  zy.noSkuPropertyData.push(propertyData[i]);
-                                }
-
-                          }
-                   }
-                 }).catch(function () {
-                   alert("查询失败")
-                 })
-              }
+             }
         }
     }
 </script>

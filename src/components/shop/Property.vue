@@ -261,7 +261,7 @@
                 }
                 this.title=cc+"-----"+row.nameCH+"的值属性"
                 var zy = this;
-                this.$axios.get("http://192.168.235.1:8080/ValueController/getData?id="+row.id).then(function (res) {
+                this.$axios.get("http://localhost:8080/ValueController/getData?id="+row.id).then(function (res) {
                   zy.valueTableData=res.data.data;
                     zy.dialogPropertyValue=false;
                     zy.dialogPropertyValue=true;
@@ -284,7 +284,7 @@
                 type: 'warning'
               }).then(() => {
                 var  zy=this;
-                this.$axios.post("http://192.168.235.1:8080/ValueController/update",this.$qs.stringify(this.valueUpdate)).then(function () {
+                this.$axios.post("http://localhost:8080/ValueController/update",this.$qs.stringify(this.valueUpdate)).then(function () {
                   zy.$message({
                     message: '修改成功',
                     type: 'success'
@@ -302,7 +302,7 @@
 
           },queryLocal:function(id){
             var zy=this;
-                this.$axios.get("http://192.168.235.1:8080/ValueController/getData?id="+id).then(function (res) {
+                this.$axios.get("http://localhost:8080/ValueController/getData?id="+id).then(function (res) {
                   zy.valueTableData=res.data.data;
                 }).catch(function () {
                   alert("查询失败")
@@ -316,7 +316,7 @@
           },
           addValueData:function(){
             var zy=this;
-            this.$axios.post("http://192.168.235.1:8080/ValueController/add",this.$qs.stringify(this.valueAdd)).then(function () {
+            this.$axios.post("http://localhost:8080/ValueController/add",this.$qs.stringify(this.valueAdd)).then(function () {
               zy.$message({
                 message: '新增成功',
                 type: 'success'
@@ -335,7 +335,7 @@
               type: 'warning'
             }).then(() => {
               var zy=this;
-              this.$axios.get("http://192.168.235.1:8080/ValueController/delete?id="+row.id).then(function () {
+              this.$axios.get("http://localhost:8080/ValueController/delete?id="+row.id).then(function () {
                 zy.$message({
                   message: '删除成功',
                   type: 'success'
@@ -376,7 +376,7 @@
           queryPropertyData: function (page) {
             var data = {"page": page, "limit": this.limit, "name": this.name}
             var zy = this;
-            this.$axios.post("http://192.168.235.1:8080/PropertyController/getDate", this.$qs.stringify(data)).then(function (res) {
+            this.$axios.post("http://localhost:8080/PropertyController/getDate", this.$qs.stringify(data)).then(function (res) {
               zy.tableData = res.data.data;
               zy.count = res.data.count;
             }).catch(function () {
@@ -385,7 +385,7 @@
           },
           queryType: function () {
             var zy = this;
-            this.$axios.get("http://192.168.235.1:8080/PropertyController/queryType").then(function (res) {
+            this.$axios.get("http://localhost:8080/PropertyController/queryType").then(function (res) {
               console.log(res.data.data)
               zy.arr=res.data.data;
               zy.typeData = res.data.data;
@@ -466,7 +466,7 @@
           },
           addProperty: function () {
             var zy = this;
-            this.$axios.post("http://192.168.235.1:8080/PropertyController/add", this.$qs.stringify(this.formAdd)).then(function () {
+            this.$axios.post("http://localhost:8080/PropertyController/add", this.$qs.stringify(this.formAdd)).then(function () {
               alert("新增成功")
               zy.formAdd = [];
               zy.dialogBrandAdd = false;
@@ -492,7 +492,7 @@
               type: 'warning'
             }).then(() => {
               var zy=this;
-              this.$axios.post("http://192.168.235.1:8080/PropertyController/update", this.$qs.stringify(this.formXiugai)).then(function () {
+              this.$axios.post("http://localhost:8080/PropertyController/update", this.$qs.stringify(this.formXiugai)).then(function () {
                 alert("修改成功")
                 zy.dialogBrandUpdate=false;
                 zy.formXiugai = [];
@@ -515,7 +515,7 @@
               type: 'warning'
             }).then(() => {
               var zy=this;
-              this.$axios("http://192.168.235.1:8080/PropertyController/delete?id="+row.id).then(function () {
+              this.$axios("http://localhost:8080/PropertyController/delete?id="+row.id).then(function () {
                 alert("删除成功")
                 zy.chaxun();
               }).catch(function () {

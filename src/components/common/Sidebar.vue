@@ -68,7 +68,11 @@ export default {
                   subs: [
                     {
                       index: 'goods',
-                      title: '商品维护'
+                      title: '商品新增'
+                    },
+                    {
+                      index: 'queryGoods',
+                      title: '商品管理'
                     },
                     {
                       index: 'type',
@@ -85,37 +89,25 @@ export default {
                   ]
                 },
                 {
-                  icon: 'el-icon-document-copy',
-                    index: 'table',
-                    title: '基础表格'
-                },
-                {
                   icon: 'el-icon-s-data',
                     index: '3',
                     title: '表单相关',
                     subs: [
-                        {
-                            index: 'form',
-                            title: '基本表单'
-                        },
-                        {
-                            index: '3-2',
-                            title: '三级菜单',
-                            subs: [
-                                {
-                                    index: 'editor',
-                                    title: '富文本编辑器'
-                                },
-                                {
-                                    index: 'markdown',
-                                    title: 'markdown编辑器'
-                                }
-                            ]
-                        },
-                        {
-                            index: 'upload',
-                            title: '文件上传'
-                        }
+                      {
+                        icon: 'el-icon-document-copy',
+                        index: 'menu',
+                        title: '权限管理'
+                      },
+                      {
+                        icon: 'el-icon-document-copy',
+                        index: 'role',
+                        title: '角色管理'
+                      },
+                      {
+                        icon: 'el-icon-document-copy',
+                        index: 'user',
+                        title: '用户管理'
+                      },
                     ]
                 },
             ]

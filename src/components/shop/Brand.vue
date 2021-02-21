@@ -181,7 +181,7 @@
             queryDate:function (page) {
                 var params={"page":page,"limit":this.size,"name":this.name};
                 var zy=this
-                this.$axios.post("http://192.168.235.1:8080/BrandController/getBrandDate",this.$qs.stringify(params)).then(function (res) {
+                this.$axios.post("http://localhost:8080/BrandController/getBrandDate",this.$qs.stringify(params)).then(function (res) {
                   zy.tableData=res.data.data;
                   zy.count=res.data.count;
                 }).catch(function () {
@@ -199,7 +199,7 @@
               var zy=this;
               var brand={"id":this.formUpdate.id,"name":this.formUpdate.name,"bandE":this.formUpdate.bandE,"bandDesc":this.formUpdate.bandDesc,"ord":this.formUpdate.ord,"imgpath":this.formUpdate.imgpath}
               console.log(this.formUpdate);
-              this.$axios.post("http://192.168.235.1:8080/BrandController/updateBrand",this.$qs.stringify(brand)).then(function () {
+              this.$axios.post("http://localhost:8080/BrandController/updateBrand",this.$qs.stringify(brand)).then(function () {
                 alert("修改成功");
                 zy.dialogBrandUpdate=false;
                 zy.chaxun();
@@ -216,7 +216,7 @@
           },
           addBrand:function () {
               var zy=this;
-            this.$axios.post("http://192.168.235.1:8080/BrandController/addBrand",this.$qs.stringify(this.formAdd)).then(function (res) {
+            this.$axios.post("http://localhost:8080/BrandController/addBrand",this.$qs.stringify(this.formAdd)).then(function (res) {
               alert("新增成功");
               zy.dialogBrandAdd=false;
               zy.chaxun();
@@ -226,7 +226,7 @@
           },
           handleDelete:function (index,data) {
             var zy=this;
-            this.$axios.get("http://192.168.235.1:8080/BrandController/delete?id="+data.id+"").then(function (res) {
+            this.$axios.get("http://localhost:8080/BrandController/delete?id="+data.id+"").then(function (res) {
               alert("删除成功");
               zy.chaxun();
             }).catch(function () {
